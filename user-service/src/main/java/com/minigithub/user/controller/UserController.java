@@ -46,7 +46,7 @@ public class UserController {
     }
 
     @GetMapping("/{username}")
-    public Result<UserResponse> getUserByUsername(@PathVariable String username) {
+    public Result<UserResponse> getUserByUsername(@PathVariable("username") String username) {
         UserResponse user = userService.getUserByUsername(username);
         return Result.success(user);
     }

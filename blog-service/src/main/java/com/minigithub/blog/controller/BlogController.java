@@ -28,7 +28,7 @@ public class BlogController {
 
     @PutMapping("/{id}")
     public Result<BlogResponse> updateBlog(HttpServletRequest request,
-                                            @PathVariable Long id,
+                                            @PathVariable("id") Long id,
                                             @Valid @RequestBody UpdateBlogRequest updateRequest) {
         String token = request.getHeader("Authorization").replace("Bearer ", "");
         Long userId = jwtUtil.getUserId(token);
@@ -38,7 +38,7 @@ public class BlogController {
 
     @DeleteMapping("/{id}")
     public Result<Void> deleteBlog(HttpServletRequest request,
-                                    @PathVariable Long id) {
+                                    @PathVariable("id") Long id) {
         String token = request.getHeader("Authorization").replace("Bearer ", "");
         Long userId = jwtUtil.getUserId(token);
         blogService.deleteBlog(userId, id);
@@ -46,7 +46,7 @@ public class BlogController {
     }
 
     @GetMapping("/{id}")
-    public Result<BlogResponse> getBlogById(@PathVariable Long id) {
+    public Result<BlogResponse> getBlogById(@PathVariable("id") Long id) {
         BlogResponse blog = blogService.getBlogById(id);
         return Result.success(blog);
     }
@@ -59,7 +59,7 @@ public class BlogController {
     }
 
     @GetMapping("/user/{userId}")
-    public Result<PageResult<BlogResponse>> getUserBlogList(@PathVariable Long userId,
+    public Result<PageResult<BlogResponse>> getUserBlogList(@PathVariable("userId") Long userId,
                                                               @RequestParam(name = "page", defaultValue = "1") int page,
                                                               @RequestParam(name = "size", defaultValue = "10") int size) {
         PageResult<BlogResponse> result = blogService.getUserBlogList(userId, page, size);
