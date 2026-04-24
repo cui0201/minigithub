@@ -52,24 +52,24 @@ public class BlogController {
     }
 
     @GetMapping("/list")
-    public Result<PageResult<BlogResponse>> getBlogList(@RequestParam(defaultValue = "1") int page,
-                                                          @RequestParam(defaultValue = "10") int size) {
+    public Result<PageResult<BlogResponse>> getBlogList(@RequestParam(name = "page", defaultValue = "1") int page,
+                                                          @RequestParam(name = "size", defaultValue = "10") int size) {
         PageResult<BlogResponse> result = blogService.getBlogList(page, size);
         return Result.success(result);
     }
 
     @GetMapping("/user/{userId}")
     public Result<PageResult<BlogResponse>> getUserBlogList(@PathVariable Long userId,
-                                                              @RequestParam(defaultValue = "1") int page,
-                                                              @RequestParam(defaultValue = "10") int size) {
+                                                              @RequestParam(name = "page", defaultValue = "1") int page,
+                                                              @RequestParam(name = "size", defaultValue = "10") int size) {
         PageResult<BlogResponse> result = blogService.getUserBlogList(userId, page, size);
         return Result.success(result);
     }
 
     @GetMapping("/my")
     public Result<PageResult<BlogResponse>> getMyBlogList(HttpServletRequest request,
-                                                           @RequestParam(defaultValue = "1") int page,
-                                                           @RequestParam(defaultValue = "10") int size) {
+                                                           @RequestParam(name = "page", defaultValue = "1") int page,
+                                                           @RequestParam(name = "size", defaultValue = "10") int size) {
         String token = request.getHeader("Authorization").replace("Bearer ", "");
         Long userId = jwtUtil.getUserId(token);
         PageResult<BlogResponse> result = blogService.getUserBlogList(userId, page, size);

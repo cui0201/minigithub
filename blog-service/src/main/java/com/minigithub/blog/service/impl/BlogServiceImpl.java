@@ -10,12 +10,21 @@ import com.minigithub.common.BusinessException;
 import com.minigithub.common.PageResult;
 import com.minigithub.common.ResultCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class BlogServiceImpl implements BlogService {
     private final BlogMapper blogMapper;
+    private final RestTemplate restTemplate;
+
+    @Value("${user.service.url:http://localhost:8081}")
+    private String userServiceUrl;
 
     @Override
     public BlogResponse createBlog(Long authorId, CreateBlogRequest request) {
@@ -26,7 +35,8 @@ public class BlogServiceImpl implements BlogService {
         blog.setViewCount(0);
         blog.setStatus(1);
         blogMapper.insert(blog);
-        return convertToResponse(blog, "");
+        String authorName = fetchAuthorName(authorId);
+        return convertToResponse(blog, authorName);
     }
 
     @Override
@@ -47,7 +57,8 @@ public class BlogServiceImpl implements BlogService {
         }
 
         blogMapper.updateById(blog);
-        return convertToResponse(blog, "");
+        String authorName = fetchAuthorName(blog.getAuthorId());
+        return convertToResponse(blog, authorName);
     }
 
     @Override
@@ -73,7 +84,8 @@ public class BlogServiceImpl implements BlogService {
         blog.setViewCount(blog.getViewCount() + 1);
         blogMapper.updateById(blog);
 
-        return convertToResponse(blog, "");
+        String authorName = fetchAuthorName(blog.getAuthorId());
+        return convertToResponse(blog, authorName);
     }
 
     @Override
@@ -85,8 +97,11 @@ public class BlogServiceImpl implements BlogService {
         Page<Blog> pageParam = new Page<>(page, size);
         Page<Blog> resultPage = blogMapper.selectPage(pageParam, wrapper);
 
+        List<Blog> blogs = resultPage.getRecords();
+        Map<Long, String> authorNames = fetchAuthorNamesBatch(blogs);
+
         return PageResult.of(
-                resultPage.getRecords().stream().map(b -> convertToResponse(b, "")).toList(),
+                blogs.stream().map(b -> convertToResponse(b, authorNames.getOrDefault(b.getAuthorId(), "未知用户"))).toList(),
                 resultPage.getTotal(),
                 (int) resultPage.getCurrent(),
                 (int) resultPage.getSize()
@@ -102,12 +117,39 @@ public class BlogServiceImpl implements BlogService {
         Page<Blog> pageParam = new Page<>(page, size);
         Page<Blog> resultPage = blogMapper.selectPage(pageParam, wrapper);
 
+        String authorName = fetchAuthorName(userId);
+
         return PageResult.of(
-                resultPage.getRecords().stream().map(b -> convertToResponse(b, "")).toList(),
+                resultPage.getRecords().stream().map(b -> convertToResponse(b, authorName)).toList(),
                 resultPage.getTotal(),
                 (int) resultPage.getCurrent(),
                 (int) resultPage.getSize()
         );
+    }
+
+    private String fetchAuthorName(Long userId) {
+        try {
+            String url = userServiceUrl + "/internal/user/" + userId;
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            if (response != null && response.get("data") != null) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> userData = (Map<String, Object>) response.get("data");
+                return (String) userData.getOrDefault("username", "未知用户");
+            }
+        } catch (Exception e) {
+            // 静默处理，返回默认值
+        }
+        return "未知用户";
+    }
+
+    private Map<Long, String> fetchAuthorNamesBatch(List<Blog> blogs) {
+        Map<Long, String> result = new HashMap<>();
+        Set<Long> userIds = blogs.stream().map(Blog::getAuthorId).collect(Collectors.toSet());
+        for (Long userId : userIds) {
+            result.put(userId, fetchAuthorName(userId));
+        }
+        return result;
     }
 
     private BlogResponse convertToResponse(Blog blog, String authorName) {

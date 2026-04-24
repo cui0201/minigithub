@@ -12,6 +12,7 @@ spring:
   cloud:
     nacos:
       discovery:
+        enabled: false
         server-addr: localhost:8848
         namespace: public
 
@@ -27,6 +28,10 @@ mybatis-plus:
 jwt:
   secret: minigithub-secret-key-2026-spring-cloud-alibaba-nacos-gateway
   expiration: 86400000
+
+user:
+  service:
+    url: http://localhost:8081
 
 logging:
   level:

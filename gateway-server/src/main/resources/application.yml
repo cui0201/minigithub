@@ -7,41 +7,12 @@ spring:
   cloud:
     nacos:
       discovery:
+        enabled: false
         server-addr: localhost:8848
         namespace: public
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-      routes:
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/user/**
-          filters:
-            - StripPrefix=2
-        - id: blog-service
-          uri: lb://blog-service
-          predicates:
-            - Path=/api/blog/**
-          filters:
-            - StripPrefix=2
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowed-origin-patterns: "*"
-            allowed-methods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowed-headers: "*"
-            allow-credentials: true
-            max-age: 3600
+      enabled: false
 
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG
     com.minigithub: DEBUG
