@@ -1,124 +1,144 @@
 <template>
-  <div class="create-page">
-    <div class="create-container">
-      <div class="flex items-center gap-3 mb-8">
-        <button class="back-link" @click="$router.push('/')">← 返回</button>
-        <h1 class="section-title !mb-0">{{ isEdit ? '✏️ 编辑文章' : '📝 发布文章' }}</h1>
-      </div>
+  <div class="min-h-screen bg-gradient-to-b from-[#020617] via-[#0a0f2e] to-[#020617] relative">
+    <div class="absolute inset-0 z-0">
+      <ParticlesBg />
+    </div>
 
-      <!-- 错误提示 -->
-      <div v-if="errorMsg" class="create-alert">
-        <span>⚠️</span> {{ errorMsg }}
-      </div>
+    <div class="relative z-10">
+      <!-- Nav -->
+      <nav class="flex items-center justify-between px-4 sm:px-8 py-4 max-w-3xl mx-auto">
+        <router-link to="/" class="flex items-center gap-2 no-underline group">
+          <span class="text-2xl">💻</span>
+          <span class="text-lg font-bold bg-gradient-to-r from-sky-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+            MiniGitHub
+          </span>
+        </router-link>
+        <span class="text-sm text-white/40">{{ isEdit ? '编辑文章' : '新文章' }}</span>
+      </nav>
 
-      <!-- 表单 -->
-      <form @submit.prevent="handleSubmit" class="glass-card !p-8">
-        <div class="form-group mb-6">
-          <label class="form-label">文章标题</label>
-          <input
-            v-model="form.title"
-            class="input-glow"
-            type="text"
-            placeholder="输入一个吸引人的标题..."
-            required
-          />
-        </div>
-
-        <div class="form-group mb-6">
-          <div class="flex items-center justify-between mb-3">
-            <label class="form-label !mb-0">文章内容</label>
-            <span class="text-xs" style="color: var(--text-secondary);">支持 Markdown 语法</span>
+      <div class="max-w-3xl mx-auto px-6 py-8">
+        <div class="glass-card !p-8">
+          <!-- Title -->
+          <div class="mb-6">
+            <input
+              v-model="title"
+              type="text"
+              placeholder="输入文章标题..."
+              class="input-glow !border-0 !border-b !border-white/10 !rounded-none !px-0 !py-3 text-2xl font-bold text-white/90 placeholder-white/20"
+            />
           </div>
-          <textarea
-            v-model="form.content"
-            class="input-glow input-textarea"
-            placeholder="在这里写下你的想法..."
-            rows="16"
-            required
-          ></textarea>
-        </div>
 
-        <div class="flex justify-end gap-3">
-          <router-link to="/" class="btn-outline no-underline">取消</router-link>
-          <button
-            type="submit"
-            class="btn-glow"
-            :disabled="submitting"
-          >
-            {{ submitting ? '✨ 提交中...' : (isEdit ? '💾 保存修改' : '🚀 发布文章') }}
-          </button>
+          <!-- Edit/Preview Tabs -->
+          <div class="flex gap-4 mb-6 border-b border-white/5">
+            <button
+              @click="editMode = 'write'"
+              class="pb-3 text-sm transition-colors border-b-2"
+              :class="editMode === 'write' ? 'text-sky-400 border-sky-400' : 'text-white/40 border-transparent hover:text-white/70'"
+            >✏️ 编辑</button>
+            <button
+              @click="editMode = 'preview'"
+              class="pb-3 text-sm transition-colors border-b-2"
+              :class="editMode === 'preview' ? 'text-sky-400 border-sky-400' : 'text-white/40 border-transparent hover:text-white/70'"
+            >👁️ 预览</button>
+          </div>
+
+          <!-- Write -->
+          <div v-if="editMode === 'write'">
+            <textarea
+              v-model="content"
+              rows="18"
+              placeholder="使用 Markdown 编写你的文章..."
+              class="input-glow font-mono text-sm resize-y min-h-[300px]"
+            ></textarea>
+          </div>
+
+          <!-- Preview -->
+          <div v-else class="min-h-[300px]">
+            <div v-if="content" class="prose prose-invert max-w-none" v-html="previewContent"></div>
+            <div v-else class="text-white/30 text-center py-12">
+              <div class="text-4xl mb-3">👀</div>
+              <p>还没开始写呢～</p>
+            </div>
+          </div>
+
+          <!-- Visibility & Submit -->
+          <div class="flex items-center justify-between mt-8 pt-6 border-t border-white/5">
+            <label class="flex items-center gap-2 cursor-pointer group">
+              <input type="checkbox" v-model="isPrivate" class="w-4 h-4 rounded border-white/20 bg-white/5 text-sky-400 focus:ring-sky-400/30" />
+              <span class="text-sm text-white/40 group-hover:text-white/70 transition-colors">
+                🔒 私密文章
+              </span>
+            </label>
+            <div class="flex items-center gap-3">
+              <router-link to="/" class="px-5 py-2.5 rounded-xl border border-white/10 text-white/60 hover:text-white hover:border-white/20 text-sm no-underline transition-all">
+                取消
+              </router-link>
+              <button
+                @click="submitBlog"
+                :disabled="!title.trim() || submitting"
+                class="btn-glow !px-6 !py-2.5 !rounded-xl text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {{ submitting ? '发布中...' : (isEdit ? '保存修改' : '发布文章') }}
+              </button>
+            </div>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { createBlog, getBlogById, updateBlog } from '@/api/blog'
-import { useUserStore } from '@/store/user'
-import { showToast } from '@/utils/toast'
+import ParticlesBg from '@/components/ParticlesBg.vue'
+import { marked } from 'marked'
 
 const route = useRoute()
 const router = useRouter()
-const userStore = useUserStore()
+
+const title = ref('')
+const content = ref('')
+const isPrivate = ref(false)
+const editMode = ref('write')
+const submitting = ref(false)
 
 const isEdit = computed(() => !!route.params.id)
-const submitting = ref(false)
-const errorMsg = ref('')
 
-const form = reactive({
-  title: '',
-  content: '',
+const previewContent = computed(() => {
+  if (!content.value) return ''
+  try {
+    return marked(content.value)
+  } catch {
+    return content.value.replace(/\n/g, '<br/>')
+  }
 })
 
 onMounted(async () => {
   if (isEdit.value) {
-    try {
-      const res = await getBlogById(route.params.id)
-      if (res.code === 200) {
-        form.title = res.data.title
-        form.content = res.data.content
-      }
-    } catch (e) {
-      errorMsg.value = '加载文章失败'
+    const res = await getBlogById(route.params.id)
+    if (res.code === 200 && res.data) {
+      title.value = res.data.title || ''
+      content.value = res.data.content || ''
+      isPrivate.value = res.data.visibility === 'private'
     }
   }
 })
 
-const handleSubmit = async () => {
-  if (!form.title || !form.content) {
-    errorMsg.value = '请填写标题和内容'
-    return
-  }
-
+const submitBlog = async () => {
+  if (!title.value.trim() || submitting.value) return
   submitting.value = true
-  errorMsg.value = ''
-
   try {
-    let res
+    const visibility = isPrivate.value ? 'private' : 'public'
     if (isEdit.value) {
-      res = await updateBlog(route.params.id, {
-        title: form.title,
-        content: form.content,
-      })
+      await updateBlog(route.params.id, { title: title.value, content: content.value, visibility })
     } else {
-      res = await createBlog({
-        title: form.title,
-        content: form.content,
-      })
+      await createBlog({ title: title.value, content: content.value, visibility })
     }
-
-    if (res.code === 200) {
-      showToast(isEdit.value ? '文章已更新 ✅' : '文章发布成功 ✨', 'success')
-      const blogId = isEdit.value ? route.params.id : res.data.id
-      router.push(`/blog/${blogId}`)
-    } else {
-      errorMsg.value = res.message || '提交失败'
-    }
+    router.push('/')
   } catch (e) {
-    errorMsg.value = e.message || '提交失败，请重试'
+    console.error('提交失败:', e)
   } finally {
     submitting.value = false
   }
@@ -126,67 +146,11 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.create-page {
-  padding: 120px 24px 60px;
-  min-height: 100vh;
-}
-.create-container {
-  max-width: 800px;
-  margin: 0 auto;
-}
-.back-link {
-  background: none;
-  border: none;
-  color: var(--accent-primary);
-  font-size: 14px;
-  cursor: pointer;
-  padding: 8px 0;
-  transition: all 0.3s;
-}
-.back-link:hover {
-  color: var(--accent-glow);
-}
-.create-alert {
-  padding: 12px 16px;
-  border-radius: 12px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
-  font-size: 14px;
-  margin-bottom: 20px;
-}
-.form-group {
-  margin-bottom: 4px;
-}
-.form-label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-.input-textarea {
-  resize: vertical;
-  min-height: 300px;
-  font-family: 'JetBrains Mono', monospace;
-  line-height: 1.6;
-}
-.btn-outline {
-  display: inline-flex;
-  align-items: center;
-  padding: 10px 24px;
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  background: transparent;
-  font-size: 15px;
-}
-.btn-outline:hover {
-  border-color: var(--accent-primary);
-  box-shadow: var(--glow-blue);
-  transform: translateY(-2px);
-}
+:deep(.prose) h1 { @apply text-2xl font-bold text-white/90 mt-6 mb-4; }
+:deep(.prose) h2 { @apply text-xl font-bold text-white/85 mt-5 mb-3; }
+:deep(.prose) p { @apply text-white/60 mb-4 leading-relaxed; }
+:deep(.prose) code { @apply px-2 py-0.5 rounded bg-white/5 text-sm text-sky-400; }
+:deep(.prose) pre { @apply bg-white/5 border border-white/5 rounded-xl p-4 overflow-x-auto mb-4; }
+:deep(.prose) blockquote { @apply border-l-4 border-white/10 pl-4 text-white/40 italic my-4; }
+:deep(.prose) ul, :deep(.prose) ol { @apply pl-5 text-white/60 mb-4; }
 </style>

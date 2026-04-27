@@ -49,6 +49,12 @@ const routes = [
     component: () => import('@/views/UserPage.vue'),
     meta: { title: '用户 - MiniGitHub' },
   },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue'),
+    meta: { title: '404 - MiniGitHub' },
+  },
 ]
 
 const router = createRouter({

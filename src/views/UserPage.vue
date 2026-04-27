@@ -3,17 +3,21 @@
     <div class="user-container">
       <div class="glass-card !p-8 mb-8 flex items-center gap-6">
         <div class="user-avatar-lg">
-          {{ username.charAt(0).toUpperCase() }}
+          {{ (userInfo?.username || username).charAt(0).toUpperCase() }}
         </div>
         <div>
-          <h1 class="text-2xl font-bold">{{ username }}</h1>
+          <h1 class="text-2xl font-bold">{{ userInfo?.username || username }}</h1>
           <p class="text-sm mt-1" style="color: var(--text-secondary);">
-            👤 用户主页
+            👤 用户主页 · 共 {{ blogs.length }} 篇文章
           </p>
         </div>
       </div>
 
-      <h2 class="section-title">📝 {{ username }} 的文章</h2>
+      <div v-if="errorMsg" class="create-alert mb-6">
+        <span>⚠️</span> {{ errorMsg }}
+      </div>
+
+      <h2 class="section-title">📝 {{ userInfo?.username || username }} 的文章</h2>
 
       <div v-if="loading" class="loading">
         <div class="spinner"></div>
@@ -50,11 +54,14 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getUserBlogList } from '@/api/blog'
+import { getUserByUsername } from '@/api/user'
 
 const route = useRoute()
 const username = ref(route.params.username)
 const blogs = ref([])
 const loading = ref(true)
+const userInfo = ref(null)
+const errorMsg = ref('')
 
 const getExcerpt = (content) => {
   return content?.replace(/[#*`\n]/g, ' ').trim().substring(0, 100) + '...' || ''
@@ -67,12 +74,21 @@ const formatDate = (dateStr) => {
 
 onMounted(async () => {
   try {
-    const res = await getUserBlogList(route.params.userId || 0, { page: 1, size: 20 })
-    if (res.code === 200) {
-      blogs.value = res.data.records || []
+    // 先通过用户名查用户信息拿到 userId
+    const userRes = await getUserByUsername(route.params.username)
+    if (userRes.code === 200 && userRes.data) {
+      userInfo.value = userRes.data
+      // 再用 userId 查文章列表
+      const blogRes = await getUserBlogList(userRes.data.id, { page: 1, size: 20 })
+      if (blogRes.code === 200) {
+        blogs.value = blogRes.data.records || []
+      }
+    } else {
+      errorMsg.value = '用户不存在'
     }
   } catch (e) {
     console.error('获取用户文章失败:', e)
+    errorMsg.value = '获取数据失败'
   } finally {
     loading.value = false
   }
@@ -120,5 +136,13 @@ onMounted(async () => {
   border-color: rgba(167, 139, 250, 0.3);
   box-shadow: var(--glow-purple);
   transform: translateY(-4px);
+}
+.create-alert {
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  font-size: 14px;
 }
 </style>

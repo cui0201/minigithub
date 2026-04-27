@@ -1,6 +1,6 @@
 <template>
-  <div id="tsparticles-container">
-    <Particles
+  <div class="absolute inset-0">
+    <vue-particles
       id="tsparticles"
       :options="particlesOptions"
     />
@@ -8,116 +8,36 @@
 </template>
 
 <script setup>
-import Particles from '@tsparticles/vue3'
+import { onMounted } from 'vue'
 import { loadSlim } from '@tsparticles/slim'
+import { tsParticles } from '@tsparticles/engine'
+
+onMounted(async () => {
+  await loadSlim(tsParticles)
+})
 
 const particlesOptions = {
-  fullScreen: {
-    enable: true,
-    zIndex: 0
-  },
-  background: {
-    color: '#020617'
-  },
   fpsLimit: 60,
+  fullScreen: { enable: false },
+  particles: {
+    number: { value: 60, density: { enable: true } },
+    color: { value: ['#38bdf8', '#a78bfa', '#22d3ee', '#818cf8'] },
+    shape: { type: 'circle' },
+    opacity: { value: { min: 0.1, max: 0.3 }, animation: { enable: true, speed: 0.5 } },
+    size: { value: { min: 1, max: 3 }, animation: { enable: true, speed: 1 } },
+    links: { enable: true, distance: 150, color: '#38bdf8', opacity: 0.08, width: 1 },
+    move: { enable: true, speed: 0.6, outModes: { default: 'bounce' } },
+  },
   interactivity: {
     events: {
-      onHover: {
-        enable: true,
-        mode: 'grab',
-        parallax: {
-          enable: true,
-          force: 60,
-          smooth: 10
-        }
-      },
-      resize: true
+      onHover: { enable: true, mode: 'grab' },
+      onClick: { enable: true, mode: 'push' },
     },
     modes: {
-      grab: {
-        distance: 180,
-        links: {
-          opacity: 0.3
-        }
-      },
-      push: {
-        quantity: 4
-      },
-      repulse: {
-        distance: 100,
-        duration: 0.4
-      }
-    }
+      grab: { distance: 180, links: { opacity: 0.15 } },
+      push: { quantity: 3 },
+    },
   },
-  particles: {
-    color: {
-      value: ['#38bdf8', '#a78bfa', '#22d3ee']
-    },
-    links: {
-      color: '#38bdf8',
-      distance: 150,
-      enable: true,
-      opacity: 0.12,
-      width: 1
-    },
-    move: {
-      direction: 'none',
-      enable: true,
-      outModes: {
-        default: 'bounce'
-      },
-      random: false,
-      speed: 1.2,
-      straight: false
-    },
-    number: {
-      density: {
-        enable: true,
-        area: 800
-      },
-      value: 80
-    },
-    opacity: {
-      value: 0.5,
-      random: {
-        enable: true,
-        minimumValue: 0.15
-      },
-      animation: {
-        enable: true,
-        speed: 1,
-        minimumValue: 0.1
-      }
-    },
-    size: {
-      value: { min: 1, max: 3 },
-      random: {
-        enable: true,
-        minimumValue: 1
-      },
-      animation: {
-        enable: true,
-        speed: 2,
-        minimumValue: 0.3
-      }
-    }
-  },
-  detectRetina: true
-}
-
-async function particlesInit(engine) {
-  await loadSlim(engine)
+  detectRetina: true,
 }
 </script>
-
-<style scoped>
-#tsparticles-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-</style>
