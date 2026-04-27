@@ -31,6 +31,7 @@ public class BlogServiceImpl implements BlogService {
         Blog blog = new Blog();
         blog.setTitle(request.getTitle());
         blog.setContent(request.getContent());
+        blog.setVisibility(request.getVisibility() != null ? request.getVisibility() : "public");
         blog.setAuthorId(authorId);
         blog.setViewCount(0);
         blog.setStatus(1);
@@ -54,6 +55,9 @@ public class BlogServiceImpl implements BlogService {
         }
         if (request.getContent() != null) {
             blog.setContent(request.getContent());
+        }
+        if (request.getVisibility() != null) {
+            blog.setVisibility(request.getVisibility());
         }
 
         blogMapper.updateById(blog);
@@ -92,6 +96,7 @@ public class BlogServiceImpl implements BlogService {
     public PageResult<BlogResponse> getBlogList(int page, int size) {
         LambdaQueryWrapper<Blog> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Blog::getStatus, 1);
+        wrapper.eq(Blog::getVisibility, "public");
         wrapper.orderByDesc(Blog::getCreateTime);
 
         Page<Blog> pageParam = new Page<>(page, size);
@@ -157,6 +162,7 @@ public class BlogServiceImpl implements BlogService {
                 blog.getId(),
                 blog.getTitle(),
                 blog.getContent(),
+                blog.getVisibility(),
                 blog.getAuthorId(),
                 authorName,
                 blog.getViewCount(),

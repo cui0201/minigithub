@@ -5,13 +5,36 @@ spring:
   application:
     name: gateway-server
   cloud:
+    gateway:
+      enabled: true
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "*"
+            allowed-methods: "*"
+            allowed-headers: "*"
+      routes:
+        - id: user-service-route
+          uri: lb://user-service
+          predicates:
+            - Path=/api/user/**
+          filters:
+            - StripPrefix=1
+        - id: blog-service-route
+          uri: lb://blog-service
+          predicates:
+            - Path=/api/blog/**
+          filters:
+            - StripPrefix=1
     nacos:
       discovery:
-        enabled: false
+        enabled: true
         server-addr: localhost:8848
-        namespace: public
-    gateway:
-      enabled: false
+
+jwt:
+  secret: ${JWT_SECRET}
+db:
+  password: ${DB_PASSWORD:root}
 
 logging:
   level:

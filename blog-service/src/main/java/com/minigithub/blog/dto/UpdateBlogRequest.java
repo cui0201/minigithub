@@ -7,4 +7,5 @@ import lombok.Data;
 public class UpdateBlogRequest {
     private String title;
     private String content;
+    private String visibility;
 }

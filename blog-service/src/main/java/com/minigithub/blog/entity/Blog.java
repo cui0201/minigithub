@@ -14,6 +14,8 @@ public class Blog {
 
     private String content;
 
+    private String visibility; // public / private
+
     private Long authorId;
 
     private Integer viewCount;

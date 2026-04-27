@@ -10,4 +10,6 @@ public class CreateBlogRequest {
 
     @NotBlank(message = "内容不能为空")
     private String content;
+
+    private String visibility = "public";
 }

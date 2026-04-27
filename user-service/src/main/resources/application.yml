@@ -1,6 +1,5 @@
 server:
   port: 8081
-
 spring:
   application:
     name: user-service
@@ -9,14 +8,10 @@ spring:
     url: jdbc:mysql://localhost:3306/minigithub?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: root
     password: root
-  # 暂时禁用服务发现，先让服务启动
   cloud:
     nacos:
       discovery:
         enabled: false
-        server-addr: localhost:8848
-        namespace: public
-
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
@@ -25,11 +20,9 @@ mybatis-plus:
     db-config:
       id-type: auto
   mapper-locations: classpath:mapper/*.xml
-
 jwt:
   secret: minigithub-secret-key-2026-spring-cloud-alibaba-nacos-gateway
   expiration: 86400000
-
 logging:
   level:
     com.minigithub: DEBUG

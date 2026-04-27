@@ -13,6 +13,7 @@ public class BlogResponse {
     private Long id;
     private String title;
     private String content;
+    private String visibility;
     private Long authorId;
     private String authorName;
     private Integer viewCount;

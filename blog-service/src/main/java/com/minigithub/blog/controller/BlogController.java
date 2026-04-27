@@ -46,8 +46,28 @@ public class BlogController {
     }
 
     @GetMapping("/{id}")
-    public Result<BlogResponse> getBlogById(@PathVariable("id") Long id) {
+    public Result<BlogResponse> getBlogById(HttpServletRequest request,
+                                             @PathVariable("id") Long id) {
         BlogResponse blog = blogService.getBlogById(id);
+
+        // 如果文章是私密的，需要验证权限
+        if ("private".equals(blog.getVisibility())) {
+            // 尝试从 header 获取 token
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return Result.error(403, "该文章为私密内容，仅作者可见");
+            }
+            try {
+                String token = authHeader.replace("Bearer ", "");
+                Long userId = jwtUtil.getUserId(token);
+                if (!userId.equals(blog.getAuthorId())) {
+                    return Result.error(403, "该文章为私密内容，仅作者可见");
+                }
+            } catch (Exception e) {
+                return Result.error(403, "该文章为私密内容，仅作者可见");
+            }
+        }
+
         return Result.success(blog);
     }
 
