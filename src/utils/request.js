@@ -27,7 +27,11 @@ service.interceptors.response.use(
         localStorage.removeItem('user')
         window.location.href = '/login'
       }
-      return Promise.reject(new Error(res.message || '请求失败'))
+      const apiError = new Error(res.message || '请求失败')
+      apiError.code = res.code
+      apiError.data = res.data
+      apiError.response = response
+      return Promise.reject(apiError)
     }
     return res
   },

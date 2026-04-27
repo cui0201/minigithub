@@ -1,90 +1,110 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-[#020617] via-[#0a0f2e] to-[#020617] relative">
-    <!-- 粒子背景 -->
-    <div class="absolute inset-0 z-0">
-      <ParticlesBg />
-    </div>
+  <div class="min-h-screen bg-slate-950 text-slate-100">
+    <AppHeader subtitle="文章详情">
+      <template #actions>
+        <button
+          v-if="isAuthor"
+          type="button"
+          class="rounded-xl border border-white/10 px-4 py-2 text-sm text-slate-200 transition hover:border-white/20 hover:bg-white/5"
+          @click="editBlog"
+        >
+          编辑
+        </button>
+        <button
+          v-if="isAuthor"
+          type="button"
+          class="rounded-xl border border-red-400/20 px-4 py-2 text-sm text-red-200 transition hover:bg-red-400/10"
+          @click="deleteBlog"
+        >
+          删除
+        </button>
+      </template>
+    </AppHeader>
 
-    <div class="relative z-10">
-      <!-- Nav -->
-      <nav class="flex items-center justify-between px-4 sm:px-8 py-4 max-w-5xl mx-auto">
-        <router-link to="/" class="flex items-center gap-2 no-underline group">
-          <span class="text-2xl">💻</span>
-          <span class="text-lg font-bold bg-gradient-to-r from-sky-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-            MiniGitHub
-          </span>
+    <main class="mx-auto max-w-4xl px-4 pb-16 pt-10 sm:px-6 lg:px-8 lg:pt-14">
+      <div v-if="loading" class="rounded-[28px] border border-white/10 bg-slate-900/80 p-8 sm:p-10">
+        <div class="h-4 w-24 animate-pulse rounded bg-white/10"></div>
+        <div class="mt-6 h-10 w-3/4 animate-pulse rounded bg-white/10"></div>
+        <div class="mt-10 space-y-3">
+          <div class="h-4 w-full animate-pulse rounded bg-white/10"></div>
+          <div class="h-4 w-full animate-pulse rounded bg-white/10"></div>
+          <div class="h-4 w-5/6 animate-pulse rounded bg-white/10"></div>
+          <div class="h-4 w-4/6 animate-pulse rounded bg-white/10"></div>
+        </div>
+      </div>
+
+      <div v-else-if="isPrivate" class="rounded-[28px] border border-amber-500/20 bg-amber-500/10 p-8 sm:p-10">
+        <h1 class="text-3xl font-semibold text-white">这篇文章是私密内容</h1>
+        <p class="mt-4 max-w-2xl text-sm leading-7 text-amber-100/80">只有作者本人可以打开详情页。如果需要查看，请先登录作者账号。</p>
+        <router-link
+          to="/login"
+          class="mt-6 inline-flex rounded-xl bg-sky-400 px-5 py-3 text-sm font-semibold text-slate-950 no-underline transition hover:bg-sky-300"
+        >
+          去登录
         </router-link>
-        <div class="flex items-center gap-3">
-          <template v-if="userStore.isLoggedIn">
-            <button v-if="isAuthor" @click="editBlog" class="px-4 py-2 rounded-lg border border-white/10 text-white/70 hover:text-white hover:border-white/20 text-sm transition-all">编辑</button>
-            <button v-if="isAuthor" @click="deleteBlog" class="px-4 py-2 rounded-lg border border-white/10 text-red-400/70 hover:text-red-400 hover:border-red-400/30 text-sm transition-all">删除</button>
-          </template>
-        </div>
-      </nav>
-
-      <!-- Loading -->
-      <div v-if="loading" class="max-w-3xl mx-auto px-6 py-12">
-        <div class="animate-pulse space-y-4">
-          <div class="h-8 bg-white/5 rounded w-3/4"></div>
-          <div class="h-4 bg-white/5 rounded w-1/4"></div>
-          <div class="h-4 bg-white/5 rounded w-full mt-8"></div>
-          <div class="h-4 bg-white/5 rounded w-full"></div>
-          <div class="h-4 bg-white/5 rounded w-2/3"></div>
-        </div>
       </div>
 
-      <!-- Private Notice -->
-      <div v-else-if="isPrivate" class="max-w-3xl mx-auto px-6 py-16 text-center">
-        <div class="glass-card !p-12 max-w-sm mx-auto">
-          <div class="text-6xl mb-6">🔒</div>
-          <h2 class="text-2xl font-bold text-white/90 mb-2">This content is private</h2>
-          <p class="text-white/50 mb-8">Only the author can view this post.</p>
-          <router-link to="/login" class="btn-glow no-underline">Sign in</router-link>
-        </div>
-      </div>
-
-      <!-- Content -->
-      <div v-else class="max-w-3xl mx-auto px-6 py-8">
-        <div class="glass-card !p-8 sm:!p-12">
-          <!-- Meta -->
-          <div class="flex items-center gap-3 text-sm text-white/30 mb-6 pb-6 border-b border-white/5">
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-purple-400 flex items-center justify-center text-xs font-bold text-white">
-              {{ (blog.authorName || 'A').charAt(0).toUpperCase() }}
-            </div>
-            <span class="text-white/60">{{ blog.authorName }}</span>
-            <span>·</span>
-            <span>{{ formatDate(blog.createTime) }}</span>
-            <span v-if="blog.visibility === 'private'" class="ml-auto flex items-center gap-1 text-amber-400/60">
-              🔒 私密
-            </span>
-          </div>
-
-          <!-- Title -->
-          <h1 class="text-3xl sm:text-4xl font-bold text-white/90 mb-8 leading-tight">{{ blog.title }}</h1>
-
-          <!-- Content -->
-          <div class="prose prose-invert max-w-none" v-html="renderedContent"></div>
-        </div>
-
-        <!-- Back -->
-        <div class="mt-8 text-center">
-          <router-link to="/" class="text-white/40 hover:text-white/70 text-sm transition-colors">
-            ← 返回首页
+      <div v-else-if="loadError" class="rounded-[28px] border border-amber-500/20 bg-amber-500/10 p-8 sm:p-10">
+        <h1 class="text-2xl font-semibold text-white">文章暂时无法打开</h1>
+        <p class="mt-4 text-sm leading-7 text-amber-100/80">{{ loadError }}</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            class="rounded-xl bg-sky-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-300"
+            @click="fetchBlog"
+          >
+            重新加载
+          </button>
+          <router-link
+            to="/"
+            class="rounded-xl border border-white/10 px-5 py-3 text-sm text-slate-200 no-underline transition hover:border-white/20 hover:bg-white/5"
+          >
+            返回首页
           </router-link>
         </div>
       </div>
-    </div>
+
+      <article v-else class="rounded-[28px] border border-white/10 bg-slate-900/90 p-8 sm:p-10 lg:p-12">
+        <div class="flex flex-wrap items-start justify-between gap-5 border-b border-white/10 pb-8">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-3 text-sm text-slate-400">
+              <router-link
+                :to="`/user/${blog.authorName}`"
+                class="font-medium text-slate-200 no-underline transition hover:text-white"
+              >
+                {{ blog.authorName }}
+              </router-link>
+              <span>{{ formatDate(blog.createTime) }}</span>
+              <span>阅读 {{ blog.viewCount || 0 }}</span>
+            </div>
+            <h1 class="mt-5 max-w-3xl text-3xl font-semibold leading-tight text-white sm:text-4xl">{{ blog.title }}</h1>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+              {{ blog.visibility === 'private' ? '私密文章' : '公开文章' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="prose prose-invert article-prose mt-10 max-w-none" v-html="renderedContent"></div>
+      </article>
+
+      <div class="mt-8">
+        <router-link to="/" class="text-sm text-slate-400 no-underline transition hover:text-white">返回首页</router-link>
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useUserStore } from '@/store/user'
-import { getBlogById, deleteBlog as apiDeleteBlog } from '@/api/blog'
 import { ElMessageBox } from 'element-plus'
-import ParticlesBg from '@/components/ParticlesBg.vue'
-import { marked } from 'marked'
+import { deleteBlog as apiDeleteBlog, getBlogById } from '@/api/blog'
+import AppHeader from '@/components/AppHeader.vue'
+import { useUserStore } from '@/store/user'
+import { renderMarkdown } from '@/utils/markdown'
 
 const route = useRoute()
 const router = useRouter()
@@ -94,80 +114,181 @@ const blog = ref({})
 const loading = ref(true)
 const isPrivate = ref(false)
 const isAuthor = ref(false)
+const loadError = ref('')
 const renderedContent = ref('')
+const isPreviewMode = import.meta.env.DEV && route.query.preview === '1'
 
-const fetchBlog = async () => {
+function loadPreviewBlog() {
+  blog.value = {
+    id: 1,
+    title: '用更稳定的版式展示技术文章',
+    authorId: 1,
+    authorName: 'PreviewAuthor',
+    createTime: new Date().toISOString(),
+    viewCount: 128,
+    visibility: 'public',
+    content: `# 为什么详情页需要更稳\n\n技术文章详情页最重要的，不是装饰，而是让正文持续可读。\n\n## 这次预览重点\n\n- 标题区和正文区是否分层清楚\n- 段落与段落之间是否有足够留白\n- 列表、引用、代码块是否还会互相挤压\n\n> 正文区应该像阅读器，而不是控制台面板。\n\n\`\`\`js\nexport function formatArticle(title) {\n  return title.trim()\n}\n\`\`\`\n\n详情页需要把读者注意力稳定地留在内容本身。`, 
+  }
+  isAuthor.value = true
+  renderedContent.value = renderMarkdown(blog.value.content)
+}
+
+async function fetchBlog() {
   loading.value = true
   isPrivate.value = false
+  loadError.value = ''
+
+  if (isPreviewMode) {
+    loadPreviewBlog()
+    loading.value = false
+    return
+  }
+
   try {
     const res = await getBlogById(route.params.id)
-    if (res.code === 403) {
+    blog.value = res.data
+    isAuthor.value = res.data.authorId === userStore.userId
+    renderedContent.value = renderMarkdown(res.data.content)
+  } catch (error) {
+    if (error.code === 403) {
       isPrivate.value = true
-      return
+    } else {
+      loadError.value = error.message || '文章加载失败，请稍后再试。'
     }
-    if (res.code === 200 && res.data) {
-      blog.value = res.data
-      isAuthor.value = res.data.authorId === userStore.userId
-      renderMarkdown()
-    }
-  } catch (e) {
-    console.error('获取文章失败:', e)
   } finally {
     loading.value = false
   }
 }
 
-const renderMarkdown = () => {
-  if (!blog.value.content) return ''
-  try {
-    renderedContent.value = marked(blog.value.content)
-  } catch {
-    renderedContent.value = blog.value.content.replace(/\n/g, '<br/>')
-  }
-}
-
-const formatDate = (dateStr) => {
+function formatDate(dateStr) {
   if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
+
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 }
 
-const editBlog = () => router.push({ name: 'EditBlog', params: { id: blog.value.id } })
+function editBlog() {
+  router.push({ name: 'EditBlog', params: { id: blog.value.id } })
+}
 
-const deleteBlog = async () => {
+async function deleteBlog() {
   try {
-    await ElMessageBox.confirm('确定要删除这篇文章吗？', '确认删除', {
-      confirmButtonText: '确认',
+    await ElMessageBox.confirm('确定要删除这篇文章吗？删除后将无法恢复。', '确认删除', {
+      confirmButtonText: '删除',
       cancelButtonText: '取消',
       type: 'warning',
     })
-    const res = await apiDeleteBlog(blog.value.id)
-    if (res.code === 200) {
-      router.push('/')
-    }
-  } catch {
-    // cancelled
+
+    await apiDeleteBlog(blog.value.id)
+    router.push('/')
+  } catch (error) {
+    if (error === 'cancel' || error === 'close') return
+    loadError.value = error.message || '删除失败，请稍后再试。'
   }
 }
 
-onMounted(() => fetchBlog())
-watch(() => route.params.id, fetchBlog)
+onMounted(() => {
+  fetchBlog()
+})
+
+watch(() => route.params.id, () => {
+  fetchBlog()
+})
 </script>
 
 <style scoped>
-/* Prose 风格 */
-:deep(.prose) h1 { @apply text-2xl font-bold text-white/90 mt-8 mb-4; }
-:deep(.prose) h2 { @apply text-xl font-bold text-white/85 mt-6 mb-3 pb-2 border-b border-white/5; }
-:deep(.prose) h3 { @apply text-lg font-semibold text-white/80 mt-5 mb-2; }
-:deep(.prose) p { @apply text-white/60 leading-relaxed mb-4; }
-:deep(.prose) a { @apply text-sky-400 hover:text-sky-300; }
-:deep(.prose) strong { @apply text-white/80; }
-:deep(.prose) code { @apply px-2 py-0.5 rounded bg-white/5 text-sm text-sky-400 font-mono; }
-:deep(.prose) pre { @apply bg-white/5 border border-white/5 rounded-xl p-4 overflow-x-auto mb-4; }
-:deep(.prose) pre code { @apply bg-transparent p-0 text-white/60; }
-:deep(.prose) blockquote { @apply border-l-4 border-sky-400/30 pl-4 text-white/40 italic my-4; }
-:deep(.prose) ul, :deep(.prose) ol { @apply pl-5 text-white/60 mb-4; }
-:deep(.prose) li { @apply mb-1; }
-:deep(.prose) img { @apply rounded-xl max-w-full my-6 border border-white/5; }
-:deep(.prose) hr { @apply border-white/5 my-8; }
+.article-prose :deep(h1) {
+  margin-top: 2rem;
+  font-size: 1.625rem;
+  font-weight: 600;
+  color: rgb(255 255 255);
+}
+
+.article-prose :deep(h2) {
+  margin-top: 2.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: rgb(255 255 255);
+}
+
+.article-prose :deep(h3) {
+  margin-top: 1.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(241 245 249);
+}
+
+.article-prose :deep(p) {
+  margin-bottom: 1.25rem;
+  line-height: 2rem;
+  color: rgb(203 213 225);
+}
+
+.article-prose :deep(a) {
+  color: rgb(125 211 252);
+  text-decoration: underline;
+  text-decoration-color: rgba(56, 189, 248, 0.4);
+  text-underline-offset: 4px;
+}
+
+.article-prose :deep(strong) {
+  color: rgb(255 255 255);
+}
+
+.article-prose :deep(code) {
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgb(186 230 253);
+}
+
+.article-prose :deep(pre) {
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  background: rgb(2 6 23);
+  padding: 1rem;
+}
+
+.article-prose :deep(pre code) {
+  padding: 0;
+  background: transparent;
+  color: rgb(241 245 249);
+}
+
+.article-prose :deep(blockquote) {
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+  border-left: 2px solid rgba(125, 211, 252, 0.4);
+  color: rgb(148 163 184);
+}
+
+.article-prose :deep(ul),
+.article-prose :deep(ol) {
+  margin-bottom: 1.25rem;
+  padding-left: 1.25rem;
+  color: rgb(203 213 225);
+}
+
+.article-prose :deep(li) {
+  margin-bottom: 0.5rem;
+}
+
+.article-prose :deep(img) {
+  margin: 1.5rem 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+}
+
+.article-prose :deep(hr) {
+  margin: 2rem 0;
+  border-color: rgba(255, 255, 255, 0.1);
+}
 </style>

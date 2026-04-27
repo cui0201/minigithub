@@ -8,14 +8,6 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-import { loadSlim } from '@tsparticles/slim'
-import { tsParticles } from '@tsparticles/engine'
-
-onMounted(async () => {
-  await loadSlim(tsParticles)
-})
-
 const particlesOptions = {
   fpsLimit: 60,
   fullScreen: { enable: false },

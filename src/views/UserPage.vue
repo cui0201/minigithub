@@ -1,14 +1,22 @@
 <template>
-  <div class="user-page">
-    <div class="user-container">
-      <div class="glass-card !p-8 mb-8 flex items-center gap-6">
+  <PageShell subtitle="用户主页" show-nav max-width="6xl">
+    <template #actions>
+      <router-link
+        to="/"
+        class="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-200 no-underline transition hover:border-white/20 hover:bg-white/5"
+      >
+        返回首页
+      </router-link>
+    </template>
+
+    <div class="rounded-[28px] border border-white/10 bg-slate-900/90 p-6 sm:p-8 mb-8 flex flex-col gap-6 sm:flex-row sm:items-center">
         <div class="user-avatar-lg">
           {{ (userInfo?.username || username).charAt(0).toUpperCase() }}
         </div>
         <div>
-          <h1 class="text-2xl font-bold">{{ userInfo?.username || username }}</h1>
-          <p class="text-sm mt-1" style="color: var(--text-secondary);">
-            👤 用户主页 · 共 {{ blogs.length }} 篇文章
+          <h1 class="text-3xl font-semibold tracking-tight">{{ userInfo?.username || username }}</h1>
+          <p class="text-sm mt-2 leading-7" style="color: var(--text-secondary);">
+            用户主页 · 共 {{ blogs.length }} 篇文章
           </p>
         </div>
       </div>
@@ -17,7 +25,10 @@
         <span>⚠️</span> {{ errorMsg }}
       </div>
 
-      <h2 class="section-title">📝 {{ userInfo?.username || username }} 的文章</h2>
+      <div class="mb-8">
+        <h2 class="text-2xl font-semibold text-white">{{ userInfo?.username || username }} 的文章</h2>
+        <p class="mt-2 text-sm leading-7 text-slate-400">列表区在宽屏下展开，在窄屏下自动压回单列，不会出现卡片宽度忽大忽小的情况。</p>
+      </div>
 
       <div v-if="loading" class="loading">
         <div class="spinner"></div>
@@ -46,8 +57,7 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
+  </PageShell>
 </template>
 
 <script setup>
@@ -55,6 +65,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getUserBlogList } from '@/api/blog'
 import { getUserByUsername } from '@/api/user'
+import PageShell from '@/components/PageShell.vue'
 
 const route = useRoute()
 const username = ref(route.params.username)
@@ -96,14 +107,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.user-page {
-  padding: 120px 24px 60px;
-  min-height: 100vh;
-}
-.user-container {
-  max-width: 800px;
-  margin: 0 auto;
-}
 .user-avatar-lg {
   width: 64px;
   height: 64px;
@@ -120,7 +123,7 @@ onMounted(async () => {
 }
 .blog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 20px;
 }
 .blog-card {

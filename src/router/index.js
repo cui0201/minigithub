@@ -66,8 +66,9 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   document.title = to.meta.title || 'MiniGitHub'
   const token = localStorage.getItem('token')
+  const isDevPreview = import.meta.env.DEV && to.query.preview === '1'
 
-  if (to.meta.requiresAuth && !token) {
+  if (to.meta.requiresAuth && !token && !isDevPreview) {
     next({ name: 'Login', query: { redirect: to.fullPath } })
   } else {
     next()

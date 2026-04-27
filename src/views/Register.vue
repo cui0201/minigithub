@@ -1,12 +1,28 @@
 <template>
-  <div class="auth-container">
-    <div class="auth-card">
+  <AuthShell
+    eyebrow="Create Account"
+    title="把账号入口也做成稳的页面。"
+    description="注册页不应该在宽屏时空得发虚，也不该在窄屏时挤得发闷。我们给它一套更稳定的骨架。"
+    subtitle="注册"
+    secondary-label="登录"
+    secondary-to="/login"
+  >
+    <template #aside>
+      <div class="mt-8 rounded-[24px] border border-white/10 bg-white/[0.04] p-6">
+        <p class="text-sm text-slate-400">创建账号后</p>
+        <ul class="mt-4 space-y-3 text-sm leading-7 text-slate-300">
+          <li>可以进入统一的 Markdown 编辑器</li>
+          <li>可以管理自己的私密与公开文章</li>
+          <li>可以在详情页里稳定查看排版结果</li>
+        </ul>
+      </div>
+    </template>
+
+    <div>
       <div class="text-center mb-8">
-        <div class="register-logo">✨</div>
-        <h1 class="text-2xl font-bold mt-4 mb-2" style="background: linear-gradient(135deg, #a78bfa, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-          注册新账号
-        </h1>
-        <p class="text-sm" style="color: var(--text-secondary);">开启你的代码之旅</p>
+        <div class="register-logo">MG</div>
+        <h1 class="mt-5 text-3xl font-semibold text-white">注册新账号</h1>
+        <p class="mt-2 text-sm text-slate-400">开启你的代码写作之旅</p>
       </div>
 
       <div v-if="errorMsg" class="auth-alert">
@@ -16,7 +32,7 @@
       <form @submit.prevent="handleRegister" class="space-y-4">
         <!-- 用户名 -->
         <div class="form-group">
-          <label class="form-label text-sm" style="color: var(--text-secondary);">用户名</label>
+          <label class="form-label text-sm text-slate-400">用户名</label>
           <div class="input-wrapper">
             <input
               v-model="form.username"
@@ -32,7 +48,7 @@
 
         <!-- 邮箱 -->
         <div class="form-group">
-          <label class="form-label text-sm" style="color: var(--text-secondary);">邮箱</label>
+          <label class="form-label text-sm text-slate-400">邮箱</label>
           <input
             v-model="form.email"
             class="input-glow"
@@ -44,7 +60,7 @@
 
         <!-- 密码 -->
         <div class="form-group">
-          <label class="form-label text-sm" style="color: var(--text-secondary);">密码</label>
+          <label class="form-label text-sm text-slate-400">密码</label>
           <input
             v-model="form.password"
             class="input-glow"
@@ -62,7 +78,7 @@
 
         <!-- 确认密码 -->
         <div class="form-group">
-          <label class="form-label text-sm" style="color: var(--text-secondary);">确认密码</label>
+          <label class="form-label text-sm text-slate-400">确认密码</label>
           <div class="input-wrapper">
             <input
               v-model="form.confirmPassword"
@@ -80,24 +96,24 @@
 
         <button
           type="submit"
-          class="btn-glow w-full !py-3 text-base mt-2"
+          class="mt-2 w-full rounded-full bg-sky-400 px-4 py-3 text-base font-semibold text-slate-950 transition hover:bg-sky-300 disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="loading"
         >
-          {{ loading ? '✨ 注册中...' : '✨ 创建账号' }}
+          {{ loading ? '注册中...' : '创建账号' }}
         </button>
       </form>
 
       <div class="auth-divider">
-        <span>—— 已有账号？ ——</span>
+        <span>已有账号？</span>
       </div>
 
       <div class="text-center mt-6">
         <router-link to="/login" class="auth-link">
-          登录你的账号 →
+          登录你的账号
         </router-link>
       </div>
     </div>
-  </div>
+  </AuthShell>
 </template>
 
 <script setup>
@@ -105,6 +121,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
 import { register } from '@/api/user'
+import AuthShell from '@/components/AuthShell.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -210,12 +227,18 @@ const handleRegister = async () => {
 
 <style scoped>
 .register-logo {
-  font-size: 48px;
-  animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.8; }
+  width: 3.75rem;
+  height: 3.75rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(125, 211, 252, 0.25);
+  background: rgba(56, 189, 248, 0.1);
+  color: rgb(186 230 253);
+  font-size: 1.125rem;
+  font-weight: 700;
 }
 .auth-alert {
   padding: 12px 16px;
@@ -235,12 +258,12 @@ const handleRegister = async () => {
 .auth-link {
   color: var(--accent-primary);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 600;
   transition: all 0.3s;
 }
 .auth-link:hover {
   color: var(--accent-glow);
-  text-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
 }
 .form-group {
   margin-bottom: 4px;
